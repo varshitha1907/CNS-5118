@@ -1,0 +1,27 @@
+#include <stdio.h>
+
+int mod(int a, int b) {
+    return (a % b + b) % b;
+}
+
+char encrypt(int a, int b, char p) {
+    if (p >= 'A' && p <= 'Z') {
+        return 'A' + mod(a * (p - 'A') + b, 26);
+    }
+    return p; // Non-alphabetic characters are returned unchanged
+}
+
+int main() {
+    int a = 5; // Example value for a
+    int b = 8; // Example value for b
+    char plaintext[] = "HELLO";
+    char ciphertext[sizeof(plaintext)];
+
+    for (int i = 0; plaintext[i] != '\0'; i++) {
+        ciphertext[i] = encrypt(a, b, plaintext[i]);
+    }
+    ciphertext[sizeof(plaintext) - 1] = '\0'; // Null-terminate the string
+
+    printf("Ciphertext: %s\n", ciphertext);
+    return 0;
+}
