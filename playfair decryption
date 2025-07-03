@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+char matrix[5][5];
+
+// Function to prepare the Playfair matrix
+void prepareMatrix(char *key) {
+    int seen[26] = {0};
+    seen['J' - 'A'] = 1;  // I and J are considered same
+    int k = 0;
+    for (int i = 0; key[i] != '\0'; i++) {
+        char ch = toupper(key[i]);
+        if (ch == 'J') ch = 'I';
+        if (!seen[ch - 'A']) {
+            matrix[k / 5][k % 5] = ch;
+            seen[ch - 'A'] = 1;
+            k++;
+        }
+    }
+
+    for (char ch = 'A'; ch <= 'Z'; ch++) {
+        if (!seen[ch - 'A']) {
+            matrix[k / 5][k % 5] = ch;
+            seen[ch - 'A'] = 1;
+            k++;
+        }
+    }
+}
+
+// Find position of a character in matrix
+void findPosition(char ch, int *row, int *col) {
+    if (ch == 'J') ch = 'I';
+    for (int i = 0; i < 5; i++)
+        for (int j = 0; j < 5; j++)
+            if (matrix[i][j] == ch) {
+                *row = i;
+                *col = j;
+                return;
+            }
+}
+
+// Decrypt a pair of characters
+void decryptPair(char a, char b, char *res) {
+    int r1, c1, r2, c2;
+    findPosition(a, &r1, &c1);
+    findPosition(b, &r2, &c2);
+
+    if (r1 == r2) {
+        res[0] = matrix[r1][(c1 + 4) % 5];
+        res[1] = matrix[r2][(c2 + 4) % 5];
+    } else if (c1 == c2) {
+        res[0] = matrix[(r1 + 4) % 5][c1];
+        res[1] = matrix[(r2 + 4) % 5][c2];
+    } else {
+        res[0] = matrix[r1][c2];
+        res[1] = matrix[r2][c1];
+    }
+}
+
+// Main decryption function
+void decrypt(char *ciphertext, char *plaintext) {
+    int len = strlen(ciphertext);
+    int k = 0;
+
+    for (int i = 0; i < len; i += 2) {
+        char a = toupper(ciphertext[i]);
+        char b = toupper(ciphertext[i + 1]);
+
+        if (a < 'A' || a > 'Z' || b < 'A' || b > 'Z') continue;
+
+        char decrypted[2];
+        decryptPair(a, b, decrypted);
+        plaintext[k++] = decrypted[0];
+        plaintext[k++] = decrypted[1];
+    }
+    plaintext[k] = '\0';
+}
+
+int main() {
+    char key[] = "MONARCHY";
+    char ciphertext[] =
+        "KXJEYUREBEZWEHEWRYTUHEYFS"
+        "KREHEGOYFIWTTTUOLKSYCAJPO"
+        "BOTEIZONTXBYBNTGONEYCUZWR"
+        "GDSONSXBOUYWRHEBAAHYUSEDQ";
+    char plaintext[500];
+
+    prepareMatrix(key);
+    decrypt(ciphertext, plaintext);
+
+    printf("Decrypted Message:\n%s\n", plaintext);
+    return 0;
+}
